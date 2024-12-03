@@ -271,7 +271,7 @@ export function createWaffleChart(visContainer, rawData) {
         });
     }
 
-    // =========== INITIALIZATION ===========
+// =========== INITIALIZATION ===========
     // Setup initial state and event handlers
     let currentMilestoneIndex = 0;
     weekAnnotation.text(milestoneConfig.descriptions[0]);
@@ -289,6 +289,28 @@ export function createWaffleChart(visContainer, rawData) {
             if (currentMilestoneIndex === milestoneConfig.weeks.length - 1) {
                 nextButton.style('opacity', 0.5)
                     .style('pointer-events', 'none');
+
+                categoryGroups.each(function(d, i) {
+                    // Get category data from vocabData map
+                    const categoryWords = vocabData.get(d.category).words;
+                        
+                        // add the total to the end
+                        d3.select(this)
+                            .append('text')
+                            .attr('class', 'total-count')
+                            .attr('x', categoryWords.length*1.5 + squareSize + 10)
+                            .attr('y',  (d, i) => i * categorySpacing+16)
+                            .attr('dy', '0.35em')
+                            .style('font-size', '18px')
+                            .style('font-weight', 'bold')
+                            .style('opacity', 0)
+                            .text(`${categoryWords.length}`)
+                            .transition()
+                            .delay(4500)
+                            .duration(1000)
+                            .style('opacity', 1);
+                    
+                });
             }
         }
     });
