@@ -320,6 +320,7 @@ export function createWordPerformanceChart(visContainer, rawData) {
             // Separated view implementation
             updateSeparatedView(displayData, duration);
         }
+        updateTooltips();
     }
 
     // =========== COMBINED VIEW ===========
