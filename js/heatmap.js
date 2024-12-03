@@ -1,16 +1,15 @@
-// =========== IMPORTS & CONFIGURATION ===========
-// Import core configuration and utility modules
-// - Colors for visualization elements
-// - Mapping objects for data transformation
-// - UI configuration settings
+// =========== IMPORTS & SETUP ===========
+
+// bring in our configuration and styling
 import { colors, posMap, categoryMap, legendConfig, uiConfig } from './cellconfig.js';
 
 export function createHeatmap(visContainer, rawData) {
-    // =========== CONSTANTS & SETUP ===========
-    // Define core visualization dimensions and layout parameters
-    // - Set margins and dimensions
-    // - Calculate calendar-specific measurements
-    // - Initialize time formatting functions
+    // =========== CONSTANTS & CONFIG ===========
+    
+    // setup our dimensions and spacing
+    // - base width on window size
+    // - fixed height of 600px
+    // - calendar layout uses 3 months per row
     const margin = { top: 60, right: 40, bottom: 80, left: 60 };
     const width = Math.floor(window.innerWidth * 0.65) - margin.left - margin.right;
     const height = 600;
@@ -19,22 +18,30 @@ export function createHeatmap(visContainer, rawData) {
     const calendarHeight = (height - margin.top - margin.bottom) / 2 + 75;
     const cellSize = Math.min(calendarWidth / 8, calendarHeight / 8);
     
-    // =========== UTILITY FUNCTIONS ===========
-    // Time-based color assignments for different periods of the day
+    // =========== HELPER FUNCTIONS ===========
+
+    // color coding for different times of day
+    // - morning (6-11): orange
+    // - afternoon (12-17): blue  
+    // - evening/night: black
     function getTimeColor(hour) {
-        if ((hour >= 6 && hour <= 11)) return colors.pos.adj;  // Morning
-        if (hour >= 12 && hour <= 17) return colors.pos.noun;  // Afternoon
-        return colors.ui.darkGrey;  // Evening/night
+        if ((hour >= 6 && hour <= 11)) {
+            return '#f28e2c';
+        } else if (hour >= 12 && hour <= 17) {
+            return '#4e79a7';
+        }
+        return '#000000';
     }
     
+    // date formatting helpers
     const formatMonth = d3.timeFormat('%B');
     const formatWeekday = d3.timeFormat('%a');
     
     // =========== DATA PROCESSING ===========
-    // Transform raw Anki data into visualization-ready format
-    // - Aggregate reviews by date
-    // - Process individual word reviews
-    // - Create data structures for visualization
+    
+    // organize our raw data into useful structures
+    // - create map of reviews by date for the calendar
+    // - create array of word reviews with all details
     const reviewsByDate = new Map();
     const wordReviews = [];
     
@@ -59,19 +66,29 @@ export function createHeatmap(visContainer, rawData) {
         });
     });
     
+    // =========== VISUALIZATION SETUP ===========
+    
+    // setup our basic visualization parameters
+    // - months we'll show (May-October 2024)
+    // - color scale for review counts
+    // - create main SVG container
     const months = d3.range(5, 11).map(month => new Date(2024, month));
     
     const colorScale = d3.scaleSequential()
         .domain([0, d3.max(Array.from(reviewsByDate.values()), d => d.count)])
         .interpolator(d3.interpolateBlues);
     
-    // =========== SVG SETUP ===========
-    // Create main SVG container and tooltip
     const svg = visContainer
         .append('svg')
         .attr('width', width + margin.left + margin.right)
         .attr('height', height + margin.top + margin.bottom);
 
+    // =========== TOOLTIP ===========
+
+    // create tooltip for hover information
+    // - positioned absolutely
+    // - hidden by default
+    // - styled for readability
     const tooltip = d3.select('body')
         .append('div')
         .attr('class', 'tooltip')
@@ -86,10 +103,12 @@ export function createHeatmap(visContainer, rawData) {
         .style('z-index', '1000')
         .style('max-width', '400px');
 
-    // =========== VISUALIZATION COMPONENTS ===========
-    // Mini bar chart generator for tooltip details
+    // =========== MINI CHART GENERATOR ===========
+
+    // creates small bar charts for tooltip details
+    // - shows distribution of parts of speech or categories
+    // - takes array of words and type ('pos' or 'category')
     function createMiniBarChart(words, type) {
-        // Setup container and dimensions
         const container = document.createElement('div');
         container.style.width = '300px';
         container.style.height = '120px';
@@ -99,20 +118,21 @@ export function createHeatmap(visContainer, rawData) {
         const width = 300 - margin.left - margin.right;
         const height = 100 - margin.top - margin.bottom;
     
-        // Process data for visualization
+        // count occurrences of each category
         const countMap = new Map();
         words.forEach(word => {
             const key = type === 'pos' ? word.partOS : word.category;
             countMap.set(key, (countMap.get(key) || 0) + 1);
         });
         
+        // prepare data for visualization
         const data = Array.from(countMap, ([key, value]) => ({
             key,
             value,
             label: type === 'pos' ? posMap.labels[key] : categoryMap.names[key]
         })).sort((a, b) => b.value - a.value);
     
-        // Create SVG and scales
+        // create SVG and setup scales
         const svg = d3.select(container)
             .append('svg')
             .attr('width', width + margin.left + margin.right)
@@ -131,7 +151,7 @@ export function createHeatmap(visContainer, rawData) {
             .domain([0, d3.max(data, d => d.value) || 1])
             .range([0, width]);
     
-        // Add bars
+        // add bars and labels
         g.selectAll('.mini-bar')
             .data(data)
             .join('rect')
@@ -140,10 +160,9 @@ export function createHeatmap(visContainer, rawData) {
             .attr('y', d => y(d.key))
             .attr('width', d => x(d.value))
             .attr('height', y.bandwidth())
-            .attr('fill', d => type === 'pos' ? colors.pos[d.key] : colors.pos.noun)
+            .attr('fill', d => type === 'pos' ? colors.pos[d.key] : '#4e79a7')
             .attr('rx', 2);
     
-        // Add labels
         g.selectAll('.mini-label')
             .data(data)
             .join('text')
@@ -155,7 +174,6 @@ export function createHeatmap(visContainer, rawData) {
             .style('font-size', '10px')
             .text(d => d.label);
     
-        // Add value labels
         g.selectAll('.value-label')
             .data(data)
             .join('text')
@@ -169,13 +187,17 @@ export function createHeatmap(visContainer, rawData) {
         return container;
     }
 
-    // =========== TOOLTIP HANDLERS ===========
-    // Enhanced tooltip display with detailed statistics
+    // =========== TOOLTIP HANDLER ===========
+
+    // handles enhanced tooltip display
+    // - shows distribution charts
+    // - filters words based on view type
     function showEnhancedTooltip(event, d) {
         tooltip.selectAll('*').remove();
         
         const hourStr = d3.timeFormat('%I %p')(new Date(2024, 0, 1, d.hour));
         
+        // filter words based on current view
         const words = d.words.filter(w => {
             if (d.key === 'good') return w.score === 'good';
             if (d.key === 'bad') return w.score === 'bad';
@@ -184,6 +206,7 @@ export function createHeatmap(visContainer, rawData) {
             return false;
         });
     
+        // build tooltip content
         const tooltipContent = tooltip.append('div')
             .style('padding', '8px');
         
@@ -209,29 +232,34 @@ export function createHeatmap(visContainer, rawData) {
             tooltipContent.node().appendChild(categoryChart);
         }
     
+        // position and show tooltip
         tooltip
             .style('visibility', 'visible')
             .style('left', (event.pageX + 10) + 'px')
             .style('top', (event.pageY - 10) + 'px');
     }
 
-    // =========== CALENDAR RENDERING ===========
-    // Create and update calendar visualization
+    // =========== CALENDAR VIEW ===========
+    
+    // renders the monthly calendar view
+    // - creates a grid for each month
+    // - adds labels for months and days
+    // - colors cells based on review count
     function renderCalendars() {
         svg.selectAll('.word-performance').remove();
         
         const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
         
+        // create calendar for each month
         months.forEach((month, i) => {
             const row = Math.floor(i / monthsPerRow);
             const col = i % monthsPerRow;
             
-            // Create month group
+            // setup month container and labels
             const monthGroup = svg.append('g')
                 .attr('class', 'month')
                 .attr('transform', `translate(${margin.left + col * calendarWidth},${margin.top + row * calendarHeight})`);
             
-            // Add month label
             monthGroup.append('text')
                 .attr('x', calendarWidth / 2)
                 .attr('y', -10)
@@ -240,7 +268,6 @@ export function createHeatmap(visContainer, rawData) {
                 .style('font-weight', 'bold')
                 .text(formatMonth(month));
             
-            // Add weekday labels
             weekdays.forEach((day, j) => {
                 monthGroup.append('text')
                     .attr('x', j * cellSize + 15)
@@ -250,12 +277,12 @@ export function createHeatmap(visContainer, rawData) {
                     .text(day);
             });
             
-            // Calculate calendar grid
+            // calculate calendar grid positions
             const firstDay = new Date(2024, month.getMonth(), 1);
             const daysInMonth = new Date(2024, month.getMonth() + 1, 0).getDate();
             const startOffset = firstDay.getDay();
 
-            // Create calendar days
+            // create calendar cells
             for (let i = 0; i < 42; i++) {
                 const row = Math.floor(i / 7);
                 const col = i % 7;
@@ -266,7 +293,7 @@ export function createHeatmap(visContainer, rawData) {
                     const dateKey = d3.timeFormat('%Y-%m-%d')(date);
                     const reviewCount = reviewsByDate.has(dateKey) ? reviewsByDate.get(dateKey).count : 0;
 
-                    // Add day cells
+                    // add calendar cell with interactions
                     monthGroup.append('rect')
                         .attr('class', 'day')
                         .attr('x', col * cellSize)
@@ -293,7 +320,7 @@ export function createHeatmap(visContainer, rawData) {
                             }
                         });
 
-                    // Add day numbers
+                    // add day number
                     monthGroup.append('text')
                         .attr('x', col * cellSize + (cellSize - 2) / 2)
                         .attr('y', row * cellSize + cellSize + (cellSize - 2) / 2)
@@ -307,19 +334,22 @@ export function createHeatmap(visContainer, rawData) {
         });
     }
 
-    // =========== PERFORMANCE VIEW ===========
-    // Render word performance visualization
+    // =========== WORD PERFORMANCE VIEW ===========
+    
+    // handles rendering of detailed word performance data
+    // - supports three view types: goodbad, agreement, reviewtime
+    // - creates bar charts or scatter plots based on view
     function renderWordPerformance(selectedDate, viewType = 'goodbad') {
-        // Clear existing elements
         svg.selectAll('.month').remove();
         svg.selectAll('.word-performance').remove();
         
+        // filter to selected date's words
         const dateStr = d3.timeFormat('%Y-%m-%d')(selectedDate);
         const dayWords = wordReviews.filter(w => 
             d3.timeFormat('%Y-%m-%d')(w.date) === dateStr
         );
 
-        // Process data by hour
+        // setup time scales and ranges
         const hourlyGroups = d3.group(dayWords, d => d.date.getHours());
         const activeHours = Array.from(hourlyGroups.keys()).map(Number).sort((a, b) => a - b);
         const hourRange = viewType === 'reviewtime' 
@@ -328,17 +358,17 @@ export function createHeatmap(visContainer, rawData) {
         
         const hours = d3.range(hourRange[0], hourRange[1] + 1);
         
-        // Create scales
+        // setup scales and axes
         const timeScale = d3.scaleBand()
             .domain(hours)
             .range([margin.left, width - margin.right])
             .padding(0.1);
 
-        // Add x-axis
+        // create x-axis with time labels
         const xAxis = svg.append('g')
             .attr('class', 'word-performance x-axis')
             .attr('transform', `translate(0,${height - margin.bottom})`);
-            // Add x-axis line
+
         xAxis.append('line')
             .attr('x1', margin.left)
             .attr('x2', width - margin.right)
@@ -346,7 +376,6 @@ export function createHeatmap(visContainer, rawData) {
             .attr('y2', 0)
             .attr('stroke', '#ccc');
         
-        // Add hour labels
         xAxis.selectAll('.tick')
             .data(hours)
             .join('text')
@@ -358,10 +387,12 @@ export function createHeatmap(visContainer, rawData) {
             .style('fill', d => getTimeColor(d))
             .text(d => d === 0 ? '12' : d > 12 ? d - 12 : d);
 
-        // =========== VIEW TYPES ===========
-        // Handle different visualization types: good/bad, agreement, review time
+        // =========== VISUALIZATION TYPES ===========
+
+        // handle different view types
+        // - goodbad/agreement: grouped bar charts
+        // - reviewtime: scatter plot
         if (viewType === 'goodbad' || viewType === 'agreement') {
-            // Process data for bar chart view
             const getData = hour => {
                 const hourData = hourlyGroups.get(hour) || [];
                 if (viewType === 'goodbad') {
@@ -379,6 +410,7 @@ export function createHeatmap(visContainer, rawData) {
                 }
             };
 
+            // setup data and scales for bars
             const countsByHour = hours.map(hour => ({
                 hour,
                 ...getData(hour)
@@ -389,13 +421,12 @@ export function createHeatmap(visContainer, rawData) {
                 Math.max(...subgroups.map(g => d[g]))
             );
 
-            // Create scales
             const countScale = d3.scaleLinear()
                 .domain([0, maxCount])
                 .range([height - margin.bottom, margin.top]);
 
-            // Add y-axis
-            const yAxis = svg.append('g')
+            // create y-axis
+            svg.append('g')
                 .attr('class', 'word-performance y-axis')
                 .attr('transform', `translate(${margin.left},0)`)
                 .call(d3.axisLeft(countScale).tickSize(0))
@@ -406,20 +437,19 @@ export function createHeatmap(visContainer, rawData) {
                         .style('font-size', '12px');
                 });
 
-            // Create grouped bar chart
+            // create grouped bars
             const xSubgroup = d3.scaleBand()
                 .domain(subgroups)
                 .range([0, timeScale.bandwidth()])
                 .padding(0.05);
 
             const colors = {
-                good: colors.pos.verb,
-                bad: colors.pos.noun,
-                yes: colors.pos.verb,
-                no: colors.pos.noun
+                good: '#59a14f',
+                bad: '#e15759',
+                yes: '#59a14f',
+                no: '#e15759'
             };
 
-            // Add bars
             const bars = svg.selectAll('.hour-group')
                 .data(countsByHour)
                 .join('g')
@@ -442,15 +472,18 @@ export function createHeatmap(visContainer, rawData) {
                 .on('mouseover', showEnhancedTooltip)
                 .on('mouseout', () => tooltip.style('visibility', 'hidden'));
 
-            // Add legend
+            // add appropriate legend
             const labels = viewType === 'goodbad' ? ['Good', 'Bad'] : ['Agreed', 'Disagreed'];
-            const legendColors = viewType === 'goodbad'
+            const legendColors = viewType === 'goodbad' 
                 ? [colors.good, colors.bad]
                 : [colors.yes, colors.no];
             addLegend(labels, legendColors);
 
         } else if (viewType === 'reviewtime') {
-            // Process data for review time scatter plot
+            // setup scatter plot
+            // - one point per review
+            // - x: hour of day
+            // - y: review duration
             const wordsByHour = Array.from(hourlyGroups.entries())
                 .flatMap(([hour, words]) => 
                     words.map(w => ({
@@ -460,15 +493,15 @@ export function createHeatmap(visContainer, rawData) {
                     }))
                 );
 
+            // setup scales for review times
             const timeExtent = d3.extent(wordsByHour, d => d.reviewTime);
             const reviewTimeScale = d3.scaleLinear()
                 .domain([0, timeExtent[1]])
                 .range([height - margin.bottom, margin.top]);
 
-            // Add legend
-            addLegend(['Good Reviews', 'Bad Reviews'], [colors.pos.verb, colors.pos.noun]);
+            addLegend(['Agreed', 'Disagreed'], ['#59a14f', '#e15759']);
 
-            // Add y-axis
+            // create y-axis for review times
             svg.append('g')
                 .attr('class', 'word-performance y-axis')
                 .attr('transform', `translate(${margin.left},0)`)
@@ -482,7 +515,7 @@ export function createHeatmap(visContainer, rawData) {
                         .style('font-size', '12px');
                 });
 
-            // Add scatter plot points
+            // add jittered points
             const jitterWidth = timeScale.bandwidth() * 0.8;
             
             svg.selectAll('.review-point')
@@ -492,7 +525,7 @@ export function createHeatmap(visContainer, rawData) {
                 .attr('cx', d => timeScale(d.hour) + timeScale.bandwidth() / 2 + (Math.random() - 0.5) * jitterWidth)
                 .attr('cy', d => reviewTimeScale(d.reviewTime))
                 .attr('r', 4)
-                .style('fill', d => d.score === 'good' ? colors.pos.verb : colors.pos.noun)
+                .style('fill', d => d.score === 'good' ? '#59a14f' : '#e15759')
                 .style('opacity', 0.6)
                 .on('mouseover', (event, d) => {
                     tooltip.selectAll('*').remove();
@@ -502,7 +535,7 @@ export function createHeatmap(visContainer, rawData) {
                         .style('top', (event.pageY - 10) + 'px')
                         .html(`
                             Word: ${d.word} (${d.english})<br/>
-                            Type: ${posMap.labels[d.partOS]} (${categoryMap.names[d.category]})<br/>
+                            Type of Word: ${d.partOS} (${categoryMap.names[d.category]})<br/>
                             Review Time: ${d.reviewTime}s<br/>
                             Result: ${d.score}
                         `);
@@ -510,7 +543,7 @@ export function createHeatmap(visContainer, rawData) {
                 .on('mouseout', () => tooltip.style('visibility', 'hidden'));
         }
 
-        // Add axis labels
+        // add common labels
         svg.append('text')
             .attr('class', 'word-performance')
             .attr('x', width / 2)
@@ -526,12 +559,13 @@ export function createHeatmap(visContainer, rawData) {
             .attr('text-anchor', 'middle')
             .text(viewType === 'reviewtime' ? 'Review Time (s)' : 'Number of Reviews');
 
-        // Add controls
+        // add view controls
         addControls(selectedDate, viewType);
     }
 
     // =========== UI COMPONENTS ===========
-    // Add legend to visualization
+
+    // create legend for current view
     function addLegend(labels, colors) {
         const legend = svg.append('g')
             .attr('class', 'word-performance legend')
@@ -554,12 +588,13 @@ export function createHeatmap(visContainer, rawData) {
         });
     }
 
-    // Add control buttons and handle interactions
+    // add control buttons for view switching
     function addControls(selectedDate, viewType) {
         const buttonGroup = svg.append('g')
             .attr('class', 'word-performance button-group')
             .attr('transform', `translate(${width/2-100},${height+10})`);
     
+        // create toggle button
         const toggleButton = buttonGroup.append('g')
             .attr('class', 'toggle-button')
             .style('cursor', 'pointer')
@@ -569,17 +604,12 @@ export function createHeatmap(visContainer, rawData) {
             .attr('width', 200)
             .attr('height', 30)
             .attr('rx', 5)
-            .attr('fill', colors.pos.noun);
+            .attr('fill', '#e15759');
     
         let currentView = viewType;
-        let buttonText;
-        if (currentView === 'goodbad') {
-            buttonText = 'Show Agreement';
-        } else if (currentView === 'agreement') {
-            buttonText = 'Show Review Time';
-        } else {
-            buttonText = 'Show Good/Bad';
-        }
+        let buttonText = viewType === 'goodbad' ? 'Show Agreement' :
+                        viewType === 'agreement' ? 'Show Review Time' : 
+                        'Show Good/Bad';
     
         toggleButton.append('text')
             .attr('x', 100)
@@ -588,6 +618,7 @@ export function createHeatmap(visContainer, rawData) {
             .attr('fill', 'white')
             .text(buttonText);
     
+        // handle view cycling
         toggleButton.on('click', () => {
             if (currentView === 'goodbad') {
                 currentView = 'agreement';
@@ -606,6 +637,7 @@ export function createHeatmap(visContainer, rawData) {
             renderWordPerformance(selectedDate, currentView);
         });
     
+        // create reset button
         const resetButton = buttonGroup.append('g')
             .attr('class', 'reset-button')
             .style('cursor', 'pointer')
@@ -615,7 +647,7 @@ export function createHeatmap(visContainer, rawData) {
             .attr('width', 100)
             .attr('height', 30)
             .attr('rx', 4)
-            .attr('fill', colors.pos.noun);
+            .attr('fill', '#e15759');
     
         resetButton.append('text')
             .attr('x', 50)
@@ -624,6 +656,7 @@ export function createHeatmap(visContainer, rawData) {
             .attr('fill', 'white')
             .text('Reset View');
     
+        // handle reset to calendar view
         resetButton.on('click', () => {
             svg.selectAll('.word-performance')
                 .transition()
@@ -636,7 +669,8 @@ export function createHeatmap(visContainer, rawData) {
     }
 
     // =========== VIEW TRANSITIONS ===========
-    // Handle transitions between calendar and word performance views
+
+    // handle transition from calendar to word view
     function transitionToWordView(date) {
         svg.selectAll('.month')
             .transition()
@@ -647,11 +681,12 @@ export function createHeatmap(visContainer, rawData) {
         renderWordPerformance(date);
     }
 
-    // =========== INITIALIZATION ===========
-    // Initialize with calendar view
+    // =========== INITIALIZATION & CLEANUP ===========
+    
+    // start with calendar view
     renderCalendars();
     
-    // Return cleanup function
+    // return cleanup function
     return () => {
         tooltip.remove();
     };
