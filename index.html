@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Journey Through Language Learning</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+<body>
+    <div class="section intro-title">
+        My Japanese Learning Journey So Far
+    </div>
+
+    <div id="graphic">
+        <div id="sections">
+            <div class="step">
+                <div class="title">Hi there!</div>
+                <p>My name is Godwin. I went to Japan in May 2025 for 2 weeks and had an amazing time. The culture, the food-- everything was amazing and ever since then I knew I wanted to come back again. In preparation, I've been learning Japanese since then.</p>
+            </div>
+
+            <div class="step">
+                <div class="title">How I've been learning</div>
+                <p>To help learn vocabulary, I've been using Anki, a flashcard app that uses the spaced repetition system which basically means I review flashcards on a daily basis but the more I notice that that I remember certain vocabulary the flashcard app will show me it less since it assumes that I don't need it.</p>
+            </div>
+
+            <div class="step">
+                <div class="title">What I want to show you</div>
+                <p>You don't need to know Japanese to appreciate the language learning journey! I'll be showing you what I've learned so far.</p>
+            </div>
+
+            <div class="step">
+                <div class="title">What kind of words did I learn?</div>
+                <p>Let's look at the database of words we have so far.</p>
+            </div>
+            
+            <div class="step">
+                <div class="title">That's a lot of words!</div>
+                <p>Let's try seeing how the distribution looks with parts of speech instead.</p>
+            </div>
+
+            <div class="step">
+                <div class="title">Let's talk about reviews!</div>
+                <p>Now that you sort of have an idea of the dataset in mind, I also captured when I reviewed these cards in my flashcard app. To give a high level, I review a first card for the first time and say I'm good to review it the next day. If tomorrow I say I remembered it (aka the review was "good"), then I will see the card in 2 days, then 4 days, 1 week, and so on and so forth! If I ever forget a card, I review it the same day and the intervals grow from the beginning again.</p>
+            </div>
+
+            <div class="step">
+                <div class="title">Text, text, text</div>
+                <p>I've graphed the top performing words by success rate (good reviews / bad reviews) as a bar-chart-meets-word-cloud, <strong>with the top performing words at the bottom</strong>. The current view groups everything by part of speech. You can toggle a view that combines all the words at once and graphs by success rate instead <em>(so note that the top-performing-words-showing-at-the-bottom note would not apply in this view)</em>! As you can see, my top performing words are the majority of phrases before getting into some verbs and adjectives. You are able to see my worst performing words by filtering out the top 900 words (or more/less!) and going from there. Remember that I have 942 words.</p>
+            </div>
+
+            <div class="step">
+                <div class="title">Feeling the heat</div>
+                <p>
+                    Let's drill down into actual dates! Click on any colored calendar date to look at how well I reviewed that day. There are 3 views:
+                </p>
+                <ul>
+                    <li><strong>Good/Bad:</strong> When did I do especially well (or bad)?</li>
+                    <li><strong>Agreement:</strong> During each review, I personally noted if I agreed with the Anki-suggested date for the next review of the card (e.g., Yes to "In 3 days"). Am I tending to agree with Anki?</li>
+                    <li><strong>Review Time:</strong> Can I see a relationship between good/bad and review times?</li>
+                </ul>
+            </div>
+
+            <div class="step">
+                <div class="title">That's it! 🎉</div>
+                <p>Thank you looking at my vis! I hope it inspired you to look into data visualization or learning a new language!</p>
+            </div>
+
+
+        </div>
+
+        <div id="vis"></div>
+    </div>
+
+    <script src="js/scroller.js"></script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

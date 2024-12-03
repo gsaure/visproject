@@ -1,0 +1,148 @@
+/* =========== BASE STYLES ===========
+   Core styling for body and main containers
+   - Font settings
+   - Background colors
+   - Layout basics */
+   body {
+    font-family: "Segoe UI", Roboto, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f5f4f1;
+    overflow-x: hidden;
+}
+
+/* =========== TITLE SECTION ===========
+   Styling for the main title area
+   - Full viewport height
+   - Centered content
+   - Z-index handling */
+.intro-title {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 4em;
+    font-weight: bold;
+    text-align: center;
+    padding: 0 20px;
+    background-color: #f5f4f1;
+    position: relative;
+    z-index: 100;
+}
+
+/* =========== GRAPHIC CONTAINER ===========
+   Main container for visualization content
+   - Positioning
+   - Spacing
+   - Layout structure */
+#graphic {
+    margin: 0 auto;
+    position: relative;
+}
+
+/* =========== SECTIONS CONTAINER ===========
+   Container for text sections alongside visualizations 
+   - Width and positioning
+   - Spacing and layout
+   - Z-index management */
+#sections {
+    position: relative;
+    display: inline-block;
+    width: 22%;
+    top: 60px;
+    z-index: 90;
+    padding-left: 40px;
+}
+
+/* =========== STEP SECTIONS ===========
+   Individual step sections in the narrative
+   - Spacing and margins
+   - Typography
+   - Transition effects */
+.step {
+    margin-bottom: 200px;
+    min-height: 300px;
+    font-family: inherit;
+    font-weight: 400;
+    line-height: 1.6em;
+    text-align: justify;
+    opacity: 0.1;
+    transition: opacity 0.5s;
+}
+
+/* Active step highlighting */
+.step.active {
+    opacity: 1;
+}
+
+/* Section titles */
+.title {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 1em;
+}
+
+/* =========== VISUALIZATION CONTAINER ===========
+   Container for the active visualization
+   - Fixed positioning
+   - Dimensions and layout
+   - Visual styling */
+#vis {
+    display: inline-block;
+    position: fixed;
+    width: 65%;
+    right: 40px;
+    top: 60px;
+    height: 600px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* =========== IMAGE COMPONENTS ===========
+   Styling for image-based visualizations
+   - Container layout
+   - Image sizing
+   - Padding and spacing */
+.image-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.image-container img {
+    max-width: 90%;
+    max-height: 90%;
+    object-fit: contain;
+}
+
+/* =========== VISUALIZATION ELEMENTS ===========
+   Styling for specific visualization components
+   - Transitions and animations
+   - Interactive elements
+   - Typography */
+.square {
+    transition: fill 0.5s ease;
+}
+
+.pos-label {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.chart-title {
+    font-family: inherit;
+}
+
+/* =========== ANIMATION STATES ===========
+   Transition effects for visualization components
+   - Group transitions
+   - Legend transitions
+   - Opacity changes */
+.category-group, .legend {
+    transition: opacity 0.5s ease;
+}
